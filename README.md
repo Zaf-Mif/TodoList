@@ -1,4 +1,4 @@
-📋 TodoList
+# TodoList
 A simple to-do list desktop application built using Java Swing.
  
 This project is designed to demonstrate core Java concepts including:
@@ -20,7 +20,9 @@ This project is designed to demonstrate core Java concepts including:
 📁 Project Structure (Planned)
 TodoList/
 ├── src/
+
 │   ├── model/
+
 │   │   └── Task.java
 │   ├── controller/
 │   │   ├── TaskManager.java
