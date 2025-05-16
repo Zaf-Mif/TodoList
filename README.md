@@ -2,24 +2,24 @@
 A simple to-do list desktop application built using Java Swing.
  
 This project is designed to demonstrate core Java concepts including:
-  *Object-Oriented Programming (OOP)
-  *Inheritance
-  *Classes and Objects
-  *Interfaces
-  *Packages
-  *Exception Handling
-  *Java Swing GUI
+  *Object-Oriented Programming (OOP),
+  Inheritance,
+  Classes and Objects,
+  Interfaces,
+  Packages,
+  Exception Handling,
+  Java Swing GUI
 
 📌 Features (Planned)
-  Add new tasks
-  Remove tasks
-  Mark tasks as completed
-  View all tasks
+  Add new tasks,
+  Remove tasks,
+  Mark tasks as completed,
+  View all tasks,
   Save and load tasks from a file
 
 
 🛠️ Technologies
-Java (JDK 21 or your preferred version)
+Java (JDK 21 or your preferred version),
 Swing for GUI
 
 🚀 How to Run (Will Update Later)
