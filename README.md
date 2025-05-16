@@ -17,22 +17,6 @@ This project is designed to demonstrate core Java concepts including:
   View all tasks
   Save and load tasks from a file
 
-📁 Project Structure (Planned)
-TodoList/
-├── src/
-
-│   ├── model/
-
-│   │   └── Task.java
-│   ├── controller/
-│   │   ├── TaskManager.java
-│   │   └── TaskManagerImpl.java
-│   ├── view/
-│   │   └── TodoListGUI.java
-│   ├── exceptions/
-│   │   └── TaskNotFoundException.java
-│   └── Main.java
-└── README.md
 
 🛠️ Technologies
 Java (JDK 21 or your preferred version)
@@ -40,7 +24,7 @@ Swing for GUI
 
 🚀 How to Run (Will Update Later)
   1.Clone the repository:
-    git clone https://github.com/your-username/TodoList-Swing-Java.git
+   * git clone https://github.com/your-username/TodoList-Swing-Java.git
   2.Open in your preferred IDE (IntelliJ IDEA / Eclipse / VS Code)
   3.Run Main.java
 
