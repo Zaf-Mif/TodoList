@@ -2,12 +2,12 @@
 A simple to-do list desktop application built using Java Swing.
  
 This project is designed to demonstrate core Java concepts including:
-  *Object-Oriented Programming (OOP),
-  Inheritance,
-  Classes and Objects,
-  Interfaces,
-  Packages,
-  Exception Handling,
+  Object-Oriented Programming (OOP)
+  Inheritance
+  Classes and Objects
+  Interfaces
+  Packages
+  Exception Handling
   Java Swing GUI
 
 📌 Features (Planned)
