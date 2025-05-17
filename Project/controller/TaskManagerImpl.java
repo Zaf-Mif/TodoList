@@ -1,62 +1,7 @@
-// package controller;
-
-// import model.Task;
-// import exceptions.TaskNotFoundException;
-
-// import java.util.ArrayList;
-// import java.util.List;
-
-// public class TaskManagerImpl implements TaskManager {
-//     private List<Task> tasks;
-
-//     public TaskManagerImpl() {
-//         tasks = new ArrayList<>();
-//     }
-
-//     @Override
-//     public void addTask(Task task) {
-//         tasks.add(task);
-//     }
-
-//     @Override
-//     public void removeTask(String title) throws TaskNotFoundException {
-//         Task taskToRemove = findTaskByTitle(title);
-//         if (taskToRemove != null) {
-//             tasks.remove(taskToRemove);
-//         } else {
-//             throw new TaskNotFoundException("Task with title '" + title + "' not found.");
-//         }
-//     }
-
-//     @Override
-//     public void markTaskAsCompleted(String title) throws TaskNotFoundException {
-//         Task taskToMark = findTaskByTitle(title);
-//         if (taskToMark != null) {
-//             taskToMark.setCompleted(true);
-//         } else {
-//             throw new TaskNotFoundException("Task with title '" + title + "' not found.");
-//         }
-//     }
-
-//     @Override
-//     public List<Task> getAllTasks() {
-//         return tasks;
-//     }
-
-//     // Helper method
-//     private Task findTaskByTitle(String title) {
-//         for (Task task : tasks) {
-//             if (task.getTitle().equalsIgnoreCase(title)) {
-//                 return task;
-//             }
-//         }
-//         return null;
-//     }
-// }
 package controller;
 
-import model.Task;
 import exceptions.TaskNotFoundException;
+import model.Task;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -64,74 +9,85 @@ import java.util.List;
 
 public class TaskManagerImpl implements TaskManager {
     private List<Task> tasks;
-    private static final String DATA_FILE = "tasks.dat"; // file to save tasks
+    private List<Task> deletedTasks;
+    private final String TASK_FILE = "tasks.ser";
+    private final String DELETED_FILE = "deletedTasks.ser";
 
     public TaskManagerImpl() {
-        tasks = loadTasks();  // Load tasks from file when created
+        tasks = loadTasks(TASK_FILE);
+        deletedTasks = loadTasks(DELETED_FILE);
     }
 
     @Override
     public void addTask(Task task) {
         tasks.add(task);
-        saveTasks();  // Save tasks to file after adding
+        saveTasks(tasks, TASK_FILE);
     }
 
     @Override
     public void removeTask(String title) throws TaskNotFoundException {
-        Task taskToRemove = findTaskByTitle(title);
-        if (taskToRemove != null) {
-            tasks.remove(taskToRemove);
-            saveTasks();  // Save tasks after removing
-        } else {
-            throw new TaskNotFoundException("Task with title '" + title + "' not found.");
-        }
+        Task task = findTask(tasks, title);
+        tasks.remove(task);
+        deletedTasks.add(task);
+        saveTasks(tasks, TASK_FILE);
+        saveTasks(deletedTasks, DELETED_FILE);
     }
 
     @Override
     public void markTaskAsCompleted(String title) throws TaskNotFoundException {
-        Task taskToMark = findTaskByTitle(title);
-        if (taskToMark != null) {
-            taskToMark.setCompleted(true);
-            saveTasks();  // Save tasks after marking completed
-        } else {
-            throw new TaskNotFoundException("Task with title '" + title + "' not found.");
-        }
+        Task task = findTask(tasks, title);
+        task.setCompleted(true);
+        saveTasks(tasks, TASK_FILE);
     }
 
     @Override
     public List<Task> getAllTasks() {
-        return tasks;
+        return new ArrayList<>(tasks);
     }
 
-    // Helper method to find a task by title
-    private Task findTaskByTitle(String title) {
-        for (Task task : tasks) {
-            if (task.getTitle().equalsIgnoreCase(title)) {
-                return task;
-            }
-        }
-        return null;
+    @Override
+    public List<Task> getDeletedTasks() {
+        return new ArrayList<>(deletedTasks);
     }
 
-    // Save the list of tasks to a file
-    private void saveTasks() {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(DATA_FILE))) {
-            out.writeObject(tasks);
+    @Override
+    public void restoreTask(String title) throws TaskNotFoundException {
+        Task task = findTask(deletedTasks, title);
+        deletedTasks.remove(task);
+        tasks.add(task);
+        saveTasks(tasks, TASK_FILE);
+        saveTasks(deletedTasks, DELETED_FILE);
+    }
+
+    @Override
+    public void permanentlyDeleteTask(String title) throws TaskNotFoundException {
+        Task task = findTask(deletedTasks, title);
+        deletedTasks.remove(task);
+        saveTasks(deletedTasks, DELETED_FILE);
+    }
+
+    private Task findTask(List<Task> list, String title) throws TaskNotFoundException {
+        return list.stream()
+                .filter(t -> t.getTitle().equalsIgnoreCase(title))
+                .findFirst()
+                .orElseThrow(() -> new TaskNotFoundException("Task not found: " + title));
+    }
+
+    private void saveTasks(List<Task> list, String fileName) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            oos.writeObject(list);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Load the list of tasks from a file
     @SuppressWarnings("unchecked")
-    private List<Task> loadTasks() {
-        File file = new File(DATA_FILE);
-        if (!file.exists()) {
-            return new ArrayList<>(); // Return empty list if no file yet
-        }
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-            return (List<Task>) in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+    private List<Task> loadTasks(String fileName) {
+        File file = new File(fileName);
+        if (!file.exists()) return new ArrayList<>();
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            return (List<Task>) ois.readObject();
+        } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
         }

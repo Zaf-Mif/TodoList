@@ -7,147 +7,144 @@ import model.Task;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class TodoListGUI {
     private JFrame frame;
     private JTextField titleField, descriptionField, actionTitleField;
-    private JTextArea taskListArea;
+    private JTextArea taskListArea, deletedTaskListArea;
     private TaskManager taskManager;
 
     public TodoListGUI() {
         taskManager = new TaskManagerImpl();
-        frame = new JFrame("To-Do List");
+        frame = new JFrame("To-Do List with Recycle Bin");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 550);
+        frame.setSize(750, 600);
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
+        JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5,5,5,5);  // spacing around components
+        gbc.insets = new Insets(5,5,5,5);
 
-        // Title Label and Field
         gbc.gridx = 0; gbc.gridy = 0;
         panel.add(new JLabel("Title:"), gbc);
         titleField = new JTextField(20);
         gbc.gridx = 1;
         panel.add(titleField, gbc);
 
-        // Description Label and Field
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("Description:"), gbc);
         descriptionField = new JTextField(20);
         gbc.gridx = 1;
         panel.add(descriptionField, gbc);
 
-        // Add Task Button
         JButton addButton = new JButton("Add Task");
         gbc.gridx = 1; gbc.gridy = 2;
         panel.add(addButton, gbc);
 
-        // Action Title Label and Field
         gbc.gridx = 0; gbc.gridy = 3;
         panel.add(new JLabel("Task Title for Action:"), gbc);
         actionTitleField = new JTextField(20);
         gbc.gridx = 1;
         panel.add(actionTitleField, gbc);
 
-        // Remove Button
         JButton removeButton = new JButton("Remove Task");
         gbc.gridx = 0; gbc.gridy = 4;
         panel.add(removeButton, gbc);
-
-        // Mark as Completed Button
-        JButton markButton = new JButton("Mark as Completed");
+        JButton markButton = new JButton("Mark Completed");
         gbc.gridx = 1;
         panel.add(markButton, gbc);
 
-        // Show All Tasks Button
-        JButton showButton = new JButton("Show All Tasks");
+        JButton showButton = new JButton("Show Tasks");
         gbc.gridx = 0; gbc.gridy = 5;
-        gbc.gridwidth = 2;
         panel.add(showButton, gbc);
+        JButton showDeletedButton = new JButton("Show Recycle Bin");
+        gbc.gridx = 1;
+        panel.add(showDeletedButton, gbc);
 
-        // Task List TextArea
-        taskListArea = new JTextArea(15, 40);
+        taskListArea = new JTextArea(10, 30);
         taskListArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(taskListArea);
-        gbc.gridx = 0; gbc.gridy = 6;
-        gbc.gridwidth = 2;
+        deletedTaskListArea = new JTextArea(8, 30);
+        deletedTaskListArea.setEditable(false);
+
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        panel.add(scrollPane, gbc);
+        panel.add(new JScrollPane(taskListArea), gbc);
 
-        // Action Listeners
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String title = titleField.getText().trim();
-                String description = descriptionField.getText().trim();
-                if (!title.isEmpty()) {
-                    taskManager.addTask(new Task(title, description));
-                    titleField.setText("");
-                    descriptionField.setText("");
-                    showTasks();
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Title cannot be empty.");
-                }
-            }
-        });
+        gbc.gridy = 7;
+        panel.add(new JScrollPane(deletedTaskListArea), gbc);
 
-        removeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String title = actionTitleField.getText().trim();
-                try {
-                    taskManager.removeTask(title);
-                    actionTitleField.setText("");
-                    showTasks();
-                } catch (TaskNotFoundException ex) {
-                    JOptionPane.showMessageDialog(frame, ex.getMessage());
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(frame, "Unexpected error: " + ex.getMessage());
-                }
-            }
-        });
+        gbc.gridy = 8; gbc.gridwidth = 1;
+        JButton restoreButton = new JButton("Restore Task");
+        panel.add(restoreButton, gbc);
+        gbc.gridx = 1;
+        JButton deletePermanentlyButton = new JButton("Delete Permanently");
+        panel.add(deletePermanentlyButton, gbc);
 
-        markButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String title = actionTitleField.getText().trim();
-                try {
-                    taskManager.markTaskAsCompleted(title);
-                    actionTitleField.setText("");
-                    showTasks();
-                } catch (TaskNotFoundException ex) {
-                    JOptionPane.showMessageDialog(frame, ex.getMessage());
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(frame, "Unexpected error: " + ex.getMessage());
-                }
-            }
-        });
-
-        showButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        // Listeners
+        addButton.addActionListener(e -> {
+            String title = titleField.getText().trim();
+            String desc = descriptionField.getText().trim();
+            if (!title.isEmpty()) {
+                taskManager.addTask(new Task(title, desc));
+                titleField.setText("");
+                descriptionField.setText("");
                 showTasks();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Title cannot be empty.");
             }
         });
+
+        removeButton.addActionListener(e -> performAction("remove"));
+        markButton.addActionListener(e -> performAction("complete"));
+        restoreButton.addActionListener(e -> performRecycleAction("restore"));
+        deletePermanentlyButton.addActionListener(e -> performRecycleAction("delete"));
+        showButton.addActionListener(e -> showTasks());
+        showDeletedButton.addActionListener(e -> showDeletedTasks());
 
         frame.add(panel);
         frame.setVisible(true);
     }
 
+    private void performAction(String action) {
+        String title = actionTitleField.getText().trim();
+        try {
+            if (action.equals("remove")) taskManager.removeTask(title);
+            else if (action.equals("complete")) taskManager.markTaskAsCompleted(title);
+            actionTitleField.setText("");
+            showTasks();
+        } catch (TaskNotFoundException ex) {
+            JOptionPane.showMessageDialog(frame, ex.getMessage());
+        }
+    }
+
+    private void performRecycleAction(String action) {
+        String title = actionTitleField.getText().trim();
+        try {
+            if (action.equals("restore")) taskManager.restoreTask(title);
+            else if (action.equals("delete")) taskManager.permanentlyDeleteTask(title);
+            actionTitleField.setText("");
+            showDeletedTasks();
+            showTasks();
+        } catch (TaskNotFoundException ex) {
+            JOptionPane.showMessageDialog(frame, ex.getMessage());
+        }
+    }
+
     private void showTasks() {
         StringBuilder sb = new StringBuilder();
         for (Task task : taskManager.getAllTasks()) {
-            sb.append("Title: ").append(task.getTitle()).append("\n");
-            sb.append("Description: ").append(task.getDescription()).append("\n");
-            sb.append("Status: ").append(task.isCompleted() ? "✅ Completed" : "❌ Pending").append("\n");
-            sb.append("-------------------------\n");
+            sb.append("Title: ").append(task.getTitle())
+              .append(" | Desc: ").append(task.getDescription())
+              .append(" | Status: ").append(task.isCompleted() ? "✅" : "❌").append("\n");
         }
         taskListArea.setText(sb.toString());
+    }
+
+    private void showDeletedTasks() {
+        StringBuilder sb = new StringBuilder("🗑️ Recycle Bin:\n");
+        for (Task task : taskManager.getDeletedTasks()) {
+            sb.append("Title: ").append(task.getTitle())
+              .append(" | Desc: ").append(task.getDescription()).append("\n");
+        }
+        deletedTaskListArea.setText(sb.toString());
     }
 }
